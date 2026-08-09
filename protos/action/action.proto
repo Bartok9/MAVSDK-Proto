@@ -228,6 +228,9 @@ message GotoLocationRequest {
     double longitude_deg = 2; // Longitude (in degrees)
     float absolute_altitude_m = 3; // Altitude AMSL (in meters)
     float yaw_deg = 4; // Yaw angle (in degrees, frame is NED, 0 is North, positive is clockwise)
+    // Loiter radius for fixed-wing (MAV_CMD_DO_REPOSITION param3). Positive meters;
+    // direction controlled by yaw. Zero or NaN = ignored (default). See mavlink/MAVSDK#2853.
+    float loiter_radius_m = 5 [(mavsdk.options.default_value)="NaN"];
 }
 message GotoLocationResponse {
     ActionResult action_result = 1;
