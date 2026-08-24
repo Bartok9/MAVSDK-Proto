@@ -9,6 +9,11 @@ option java_outer_classname = "ShellProto";
 
 /*
  * Allow to communicate with the vehicle's system shell.
+ *
+ * Under the hood this uses MAVLink SERIAL_CONTROL. The default device is
+ * SERIAL_CONTROL_DEV_SHELL; set_device can target other SERIAL_CONTROL_DEV
+ * ports (for example TELEM2) when the same framing is used for non-nsh
+ * serial bridges.
  */
 service ShellService {
     /*
@@ -21,6 +26,14 @@ service ShellService {
      * This subscription needs to be made before a command line is sent, otherwise, no response will be sent.
      */
     rpc SubscribeReceive(SubscribeReceiveRequest) returns(stream ReceiveResponse) { option (mavsdk.options.async_type) = ASYNC; }
+    /*
+     * Select the SERIAL_CONTROL device used for send/receive.
+     *
+     * Default is DEVICE_SHELL. Other values map to MAVLink SERIAL_CONTROL_DEV
+     * (TELEM1/2, GPS1/2, SERIALn). Incoming SERIAL_CONTROL messages for other
+     * devices are ignored while a device is selected.
+     */
+    rpc SetDevice(SetDeviceRequest) returns(SetDeviceResponse) { option (mavsdk.options.async_type) = SYNC; }
 }
 
 message SendRequest {
@@ -35,6 +48,32 @@ message ReceiveResponse {
     string data = 1; // Received data.
 }
 
+// MAVLink SERIAL_CONTROL_DEV values used by the shell plugin.
+enum Device {
+    DEVICE_TELEM1 = 0; // SERIAL_CONTROL_DEV_TELEM1
+    DEVICE_TELEM2 = 1; // SERIAL_CONTROL_DEV_TELEM2
+    DEVICE_GPS1 = 2; // SERIAL_CONTROL_DEV_GPS1
+    DEVICE_GPS2 = 3; // SERIAL_CONTROL_DEV_GPS2
+    DEVICE_SHELL = 10; // SERIAL_CONTROL_DEV_SHELL (default)
+    DEVICE_SERIAL0 = 100; // SERIAL_CONTROL_SERIAL0
+    DEVICE_SERIAL1 = 101; // SERIAL_CONTROL_SERIAL1
+    DEVICE_SERIAL2 = 102; // SERIAL_CONTROL_SERIAL2
+    DEVICE_SERIAL3 = 103; // SERIAL_CONTROL_SERIAL3
+    DEVICE_SERIAL4 = 104; // SERIAL_CONTROL_SERIAL4
+    DEVICE_SERIAL5 = 105; // SERIAL_CONTROL_SERIAL5
+    DEVICE_SERIAL6 = 106; // SERIAL_CONTROL_SERIAL6
+    DEVICE_SERIAL7 = 107; // SERIAL_CONTROL_SERIAL7
+    DEVICE_SERIAL8 = 108; // SERIAL_CONTROL_SERIAL8
+    DEVICE_SERIAL9 = 109; // SERIAL_CONTROL_SERIAL9
+}
+
+message SetDeviceRequest {
+    Device device = 1; // SERIAL_CONTROL device to use
+}
+message SetDeviceResponse {
+    ShellResult shell_result = 1;
+}
+
 // Result type.
 message ShellResult {
     // Possible results returned for shell requests
@@ -45,6 +84,7 @@ message ShellResult {
         RESULT_CONNECTION_ERROR = 3; // Connection error
         RESULT_NO_RESPONSE = 4; // Response was not received
         RESULT_BUSY = 5; // Shell busy (transfer in progress)
+        RESULT_INVALID_ARGUMENT = 6; // Invalid device / argument
     }
 
     Result result = 1; // Result enum value
