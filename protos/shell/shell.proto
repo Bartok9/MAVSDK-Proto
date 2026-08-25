@@ -11,9 +11,9 @@ option java_outer_classname = "ShellProto";
  * Allow to communicate with the vehicle's system shell.
  *
  * Under the hood this uses MAVLink SERIAL_CONTROL. The default device is
- * SERIAL_CONTROL_DEV_SHELL; set_device can target other SERIAL_CONTROL_DEV
- * ports (for example TELEM2) when the same framing is used for non-nsh
- * serial bridges.
+ * SERIAL_CONTROL_DEV_SHELL. Callers can pass another SERIAL_CONTROL_DEV on
+ * Send (and observe the device on Receive) when the same framing is used for
+ * non-nsh serial bridges (for example TELEM2).
  */
 service ShellService {
     /*
@@ -26,26 +26,6 @@ service ShellService {
      * This subscription needs to be made before a command line is sent, otherwise, no response will be sent.
      */
     rpc SubscribeReceive(SubscribeReceiveRequest) returns(stream ReceiveResponse) { option (mavsdk.options.async_type) = ASYNC; }
-    /*
-     * Select the SERIAL_CONTROL device used for send/receive.
-     *
-     * Default is DEVICE_SHELL. Other values map to MAVLink SERIAL_CONTROL_DEV
-     * (TELEM1/2, GPS1/2, SERIALn). Incoming SERIAL_CONTROL messages for other
-     * devices are ignored while a device is selected.
-     */
-    rpc SetDevice(SetDeviceRequest) returns(SetDeviceResponse) { option (mavsdk.options.async_type) = SYNC; }
-}
-
-message SendRequest {
-    string command = 1; // The command line to send
-}
-message SendResponse {
-    ShellResult shell_result = 1;
-}
-
-message SubscribeReceiveRequest {}
-message ReceiveResponse {
-    string data = 1; // Received data.
 }
 
 // MAVLink SERIAL_CONTROL_DEV values used by the shell plugin.
@@ -67,11 +47,20 @@ enum Device {
     DEVICE_SERIAL9 = 109; // SERIAL_CONTROL_SERIAL9
 }
 
-message SetDeviceRequest {
-    Device device = 1; // SERIAL_CONTROL device to use
+message SendRequest {
+    string command = 1; // The command line to send
+    // SERIAL_CONTROL device to target. Unset/default is DEVICE_SHELL.
+    Device device = 2;
 }
-message SetDeviceResponse {
+message SendResponse {
     ShellResult shell_result = 1;
+}
+
+message SubscribeReceiveRequest {}
+message ReceiveResponse {
+    string data = 1; // Received data.
+    // SERIAL_CONTROL device the data came from.
+    Device device = 2;
 }
 
 // Result type.
