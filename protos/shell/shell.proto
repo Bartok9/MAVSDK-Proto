@@ -57,10 +57,13 @@ message SendResponse {
 }
 
 message SubscribeReceiveRequest {}
-message ReceiveResponse {
+message Receive {
     string data = 1; // Received data.
     // SERIAL_CONTROL device the data came from.
     Device device = 2;
+}
+message ReceiveResponse {
+    Receive receive = 1; // Received data.
 }
 
 // Result type.
