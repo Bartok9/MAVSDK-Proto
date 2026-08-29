@@ -57,10 +57,10 @@ message SendResponse {
 }
 
 message SubscribeReceiveRequest {}
+// Received shell data and source device.
 message Receive {
     string data = 1; // Received data.
-    // SERIAL_CONTROL device the data came from.
-    Device device = 2;
+    Device device = 2; // SERIAL_CONTROL device the data came from.
 }
 message ReceiveResponse {
     Receive receive = 1; // Received data.
